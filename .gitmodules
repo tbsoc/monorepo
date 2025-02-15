@@ -1,0 +1,3 @@
+[submodule "examples/aggregation/local"]
+	path = examples/aggregation/local
+	url = git@github.com:OpacityLabs/opacity-local.git
