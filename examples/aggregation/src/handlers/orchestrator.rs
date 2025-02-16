@@ -63,7 +63,7 @@ impl<E: Clock> Orchestrator<E> {
             let current = self.runtime.current();
             let current = current.duration_since(UNIX_EPOCH).unwrap().as_secs();
             hasher.update(&current.to_be_bytes());
-            let payload = hasher.finalize();
+            let payload = hasher.finalize(); // Inject custom business logic here 
             info!(round = current, msg = hex(&payload), "generated message");
 
             // Broadcast payload
@@ -100,7 +100,7 @@ impl<E: Clock> Orchestrator<E> {
                         let Ok(msg) = wire::Aggregation::decode(msg) else {
                             continue;
                         };
-                        let Some(round) = signatures.get_mut(&msg.round) else {
+                        let Some(round) = signatures.get_mut(&msg.round) else { // Need to decouple the round here
                             continue;
                         };
 
@@ -172,6 +172,7 @@ impl<E: Clock> Orchestrator<E> {
                             asig_y = ?asig.Y,
                             "aggregated signatures",
                         );
+                        // add check signatures logic here 
                         println!(r#"[eth verification] cast c -r https://eth.llamarpc.com 0xb7ba8bbc36AA5684fC44D02aD666dF8E23BEEbF8 "trySignatureAndApkVerification(bytes32,(uint256,uint256),(uint256[2],uint256[2]),(uint256,uint256))" "{:?}" "({:?},{:?})" "({:?},{:?})" "({:?},{:?})""#, hex(&payload), apk.X, apk.Y, apk_g2.X, apk_g2.Y, asig.X, asig.Y);
                     },
                 }

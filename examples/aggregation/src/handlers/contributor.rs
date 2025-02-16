@@ -48,13 +48,13 @@ impl Contributor {
     ) {
         let mut hasher = Sha256::new();
         let mut signed = HashSet::new();
-        let mut signatures: HashMap<u64, HashMap<usize, Signature>> = HashMap::new();
+        let mut signatures: HashMap<u64, HashMap<usize, Signature>> = HashMap::new(); // TODO would prefer for this to be persistent for startup recovery 
         while let Ok((s, message)) = receiver.recv().await {
             // Parse message
             let Ok(message) = wire::Aggregation::decode(message) else {
-                continue;
+                continue; //TODO seems we need some error handling here 
             };
-            let round = message.round;
+            let round = message.round; 
 
             // Check if from orchestrator
             if s != self.orchestrator {
@@ -64,7 +64,7 @@ impl Contributor {
                 };
 
                 // Check if contributor already signed
-                let Some(signatures) = signatures.get_mut(&round) else {
+                let Some(signatures) = signatures.get_mut(&round) else { // not sure if we should save purely by round
                     continue;
                 };
                 if signatures.contains_key(contributor) {
@@ -84,6 +84,7 @@ impl Contributor {
                 let payload = round.to_be_bytes();
                 hasher.update(&payload);
                 let payload = hasher.finalize();
+                // TODO ask patrick why the namespace is not in here 
                 if !Bn254::verify(None, &payload, &s, &signature) {
                     continue;
                 }
@@ -124,6 +125,7 @@ impl Contributor {
             }
 
             // Handle message from orchestrator
+            // TODO ask patrick what this means 
             match message.payload {
                 Some(wire::aggregation::Payload::Start(start)) => start,
                 _ => continue,
@@ -138,7 +140,8 @@ impl Contributor {
             let payload = message.round.to_be_bytes();
             hasher.update(&payload);
             let payload = hasher.finalize();
-            let signature = self.signer.sign(None, &payload);
+            // TODO Seems we only sign if the message if it's from an orchestrator  
+            let signature = self.signer.sign(None, &payload);  
 
             // Store signature
             signatures
@@ -147,6 +150,7 @@ impl Contributor {
                 .insert(self.me, signature.clone());
 
             // Return signature to orchestrator
+            // TODO ask patrick why we aren't sending what was signed as well  
             let message = wire::Aggregation {
                 round,
                 payload: Some(wire::aggregation::Payload::Signature(wire::Signature {
