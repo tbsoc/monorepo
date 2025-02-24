@@ -7,8 +7,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize the logger with INFO level
     init_logger(LogLevel::Info);
     let client = EigenStakingClient::new(
-        String::from("https://eth.llamarpc.com"),
-        String::from("wss://eth.drpc.org"),
+        String::from("https://withered-convincing-meadow.quiknode.pro/89fd706450ed0a8279f87c01e52ae78d9b308ce7"),
+        String::from("wss://withered-convincing-meadow.quiknode.pro/89fd706450ed0a8279f87c01e52ae78d9b308ce7"),
         address!("0xeCd099fA5048c3738a5544347D8cBc8076E76494").into(),
         20227142,
     ).await?;

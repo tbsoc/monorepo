@@ -33,7 +33,9 @@
 mod bn254;
 mod handlers;
 
-use bn254::Bn254;
+use ark_ff::{Fp, PrimeField};
+use ark_bn254::Fr;
+use bn254::{Bn254, PrivateKey};
 use clap::{value_parser, Arg, Command};
 use commonware_cryptography::Scheme;
 use commonware_p2p::authenticated::{self, Network};
@@ -46,7 +48,8 @@ use governor::Quota;
 use prometheus_client::registry::Registry;
 use commonware_restaking::eigenlayer::EigenStakingClient;
 use eigen_logging::{init_logger, log_level::LogLevel};
-use alloy_primitives::address;
+use eigen_crypto_bls::{convert_to_g1_point, convert_to_g2_point};
+use alloy_primitives::{address, hex::hex};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -60,6 +63,7 @@ use tracing::info;
 // TODO change this to match the avs namespace 
 // Unique namespace to avoid message replay attacks.
 const APPLICATION_NAMESPACE: &[u8] = b"_COMMONWARE_AGGREGATION_";
+const PRIVATE_KEY_LENGTH: usize = 32;
 
 fn main() {
         // Initialize EigenStaking client
@@ -136,10 +140,15 @@ fn main() {
     if parts.len() != 2 {
         panic!("Identity not well-formed");
     }
-    let key = parts[0].parse::<u64>().expect("Key not well-formed");
-    let signer = Bn254::from_seed(key); // TODO add support for keystore path , or remote signer 
-    tracing::info!(key = ?signer.public_key(), "loaded signer");
-
+    let scalar = hex::decode(parts[0]).expect("Invalid hex string for private key");
+    let fr = Fr::from_be_bytes_mod_order(&scalar);
+    let key = PrivateKey::from(fr);
+    
+    let signer = <Bn254 as Scheme>::from(key).expect("Failed to create signer");
+    // tracing::info!(key = ?signer.public_key(), "loaded signer");
+    let public_key = signer.public_g1();
+    print!("{}", public_key);
+    std::process::exit(0);
     // Configure my port
     let port = parts[1].parse::<u16>().expect("Port not well-formed");
     tracing::info!(port, "loaded port");
