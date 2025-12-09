@@ -1,7 +1,6 @@
 *.swp
 *.DS_Store
 target
-*.vscode
 .idea
 examples/flood/assets
 */fuzz/artifacts
@@ -11,3 +10,7 @@ examples/flood/assets
 **/quint/_apalache-out/
 **/quint/out*/
 CLAUDE.md
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
